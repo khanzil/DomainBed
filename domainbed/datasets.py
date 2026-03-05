@@ -8,6 +8,7 @@ import torchvision.datasets.folder
 from torch.utils.data import TensorDataset, Subset, ConcatDataset, Dataset
 from torchvision.datasets import MNIST, ImageFolder
 from torchvision.transforms.functional import rotate
+import h5py
 
 # for using WILDS dataset
 # from wilds.datasets.camelyon17_dataset import Camelyon17Dataset
@@ -39,6 +40,8 @@ DATASETS = [
     "SpawriousM2M_easy",
     "SpawriousM2M_medium",
     "SpawriousM2M_hard",
+    # Glasgow dataset
+    "Glasgow",
 ]
 
 def get_dataset_class(dataset_name):
@@ -55,7 +58,7 @@ def num_environments(dataset_name):
 class MultipleDomainDataset:
     N_STEPS = 5001           # Default, subclasses may override
     CHECKPOINT_FREQ = 100    # Default, subclasses may override
-    N_WORKERS = 8            # Default, subclasses may override
+    N_WORKERS = 4            # Default is 8, change to 4 for kaggle training, subclasses may override
     ENVIRONMENTS = None      # Subclasses should override
     INPUT_SHAPE = None       # Subclasses should override
 
@@ -64,6 +67,39 @@ class MultipleDomainDataset:
 
     def __len__(self):
         return len(self.datasets)
+
+
+class Glasgow(MultipleDomainDataset):
+    def __init__(self, root, test_envs, hparams):
+        super().__init__()
+        environments = [f.name for f in os.scandir(root) if f.is_dir()]
+        environments = sorted(environments)
+
+        self.N_STEPS = 100
+        self.CHECKPOINT_FREQ = 10
+
+        self.datasets = []
+        for i, environment in enumerate(environments):
+            x = []
+            y = []
+
+            path = os.path.join(root, environment)
+            for file in os.listdir(path):
+                feature_h5_dir = os.path.join(path, file)
+                with h5py.File(feature_h5_dir, 'r') as hf:
+                    feature = hf['v_heatmap'][()] # this has size (samples, range, time) or (samples, range, vel)
+                    label = hf['label'][()]
+
+                x.append(torch.abs(torch.from_numpy(feature)))
+                y.append(torch.tensor(label)-1)
+
+            x = torch.stack(x).float()
+            y = torch.stack(y).long()
+
+            self.datasets.append(TensorDataset(x,y))
+
+        self.input_shape = (1, 200, 251,)
+        self.num_classes = 7
 
 
 class Debug(MultipleDomainDataset):
