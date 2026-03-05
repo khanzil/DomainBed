@@ -90,7 +90,7 @@ class Glasgow(MultipleDomainDataset):
                     feature = hf['v_heatmap'][()] # this has size (samples, range, time) or (samples, range, vel)
                     label = hf['label'][()]
 
-                x.append(torch.abs(torch.from_numpy(feature)))
+                x.append(torch.abs(torch.from_numpy(feature))).reshape(1, 200, 251)
                 y.append(torch.tensor(label)-1)
 
             x = torch.stack(x).float()
