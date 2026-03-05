@@ -48,6 +48,7 @@ if __name__ == "__main__":
         help="For domain adaptation, % of test to use unlabeled for training.")
     parser.add_argument('--skip_model_save', action='store_true')
     parser.add_argument('--save_model_every_checkpoint', action='store_true')
+    parser.add_argument('--featurizer', type=str, default='None', help='Featurizer use in network (in case you want to use different featurizer)')
     args = parser.parse_args()
 
     # If we ever want to implement checkpointing, just persist these values
@@ -79,6 +80,7 @@ if __name__ == "__main__":
             misc.seed_hash(args.hparams_seed, args.trial_seed))
     if args.hparams:
         hparams.update(json.loads(args.hparams))
+    hparams.update({'featurizer': args.featurizer})
 
     print('HParams:')
     for k, v in sorted(hparams.items()):
