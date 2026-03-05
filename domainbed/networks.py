@@ -231,7 +231,17 @@ class ContextNet(nn.Module):
 def Featurizer(input_shape, hparams):
     """Auto-select an appropriate featurizer for the given input shape."""
     if hparams["featurizer"] != "None":
-        return globals()[hparams["featurizer"]]
+        match hparams["featurizer"]:
+            case "MLP":
+                return MLP(torch.sum(torch.ones(input_shape)).int(), hparams)
+            case "MNIST_CNN":
+                return MNIST_CNN(input_shape)
+            case "ResNet":
+                return ResNet(input_shape, hparams)
+            case _:
+                raise NotImplementedError
+
+
     if len(input_shape) == 1:
         return MLP(input_shape[0], hparams["mlp_width"], hparams)
     elif input_shape[1:3] == (28, 28):
