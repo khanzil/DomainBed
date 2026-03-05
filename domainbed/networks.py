@@ -233,7 +233,7 @@ def Featurizer(input_shape, hparams):
     if hparams["featurizer"] != "None":
         match hparams["featurizer"]:
             case "MLP":
-                return MLP(torch.sum(torch.ones(input_shape)).int(), hparams)
+                return MLP(torch.sum(torch.ones(input_shape)).int(), hparams["mlp_width"], hparams)
             case "MNIST_CNN":
                 return MNIST_CNN(input_shape)
             case "ResNet":
