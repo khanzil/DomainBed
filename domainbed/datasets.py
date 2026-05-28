@@ -69,7 +69,39 @@ class MultipleDomainDataset:
         return len(self.datasets)
 
 
+class HDF5Dataset(Dataset):
+    def __init__(self, root, feature_key='v_heatmap', label_key='label'):
+        self.paths = sorted([
+            os.path.join(root, file)
+            for file in os.listdir(root)
+            if os.path.isfile(os.path.join(root, file))
+               and file.lower().endswith(('.h5', '.hdf5'))
+        ])
+        if not self.paths:
+            raise ValueError(f"No HDF5 files found in {root}")
+        self.feature_key = feature_key
+        self.label_key = label_key
+
+    def __len__(self):
+        return len(self.paths)
+
+    def __getitem__(self, index):
+        path = self.paths[index]
+        with h5py.File(path, 'r') as hf:
+            feature = hf[self.feature_key][()]
+            label = hf[self.label_key][()]
+
+        x = torch.as_tensor(feature, dtype=torch.float32).abs()
+        if x.ndim == 2:
+            x = x.unsqueeze(0)
+
+        y = int(label) - 1
+        return x, torch.tensor(y, dtype=torch.long)
+
+
 class Glasgow(MultipleDomainDataset):
+    ENVIRONMENTS = []
+
     def __init__(self, root, test_envs, hparams):
         super().__init__()
         environments = [f.name for f in os.scandir(root) if f.is_dir()]
@@ -79,27 +111,14 @@ class Glasgow(MultipleDomainDataset):
         self.CHECKPOINT_FREQ = 10
 
         self.datasets = []
-        for i, environment in enumerate(environments):
-            x = []
-            y = []
-
+        for environment in environments:
             path = os.path.join(root, environment)
-            for file in os.listdir(path):
-                feature_h5_dir = os.path.join(path, file)
-                with h5py.File(feature_h5_dir, 'r') as hf:
-                    feature = hf['v_heatmap'][()] # this has size (samples, range, time) or (samples, range, vel)
-                    label = hf['label'][()]
-
-                x.append(torch.abs(torch.from_numpy(feature)).reshape(1, 200, 251))
-                y.append(torch.tensor(label)-1)
-
-            x = torch.stack(x).float()
-            y = torch.stack(y).long()
-
-            self.datasets.append(TensorDataset(x,y))
+            self.datasets.append(HDF5Dataset(path))
 
         self.input_shape = (1, 200, 251,)
         self.num_classes = 7
+        self.ENVIRONMENTS = environments
+        self.__class__.ENVIRONMENTS = environments
 
 
 class Debug(MultipleDomainDataset):
