@@ -219,7 +219,8 @@ if __name__ == "__main__":
 
         for key, val in step_vals.items():
             checkpoint_vals[key].append(val)
-
+        temp_gb = torch.cuda.max_memory_allocated() / (1024.*1024.*1024.)
+        print(temp_gb)
         if (step % checkpoint_freq == 0) or (step == n_steps - 1):
             results = {
                 'step': step,

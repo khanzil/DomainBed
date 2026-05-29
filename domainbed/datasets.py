@@ -118,7 +118,6 @@ class Glasgow(MultipleDomainDataset):
         self.input_shape = (1, 200, 251,)
         self.num_classes = 7
         self.ENVIRONMENTS = environments
-        self.__class__.ENVIRONMENTS = environments
 
 
 class Debug(MultipleDomainDataset):
