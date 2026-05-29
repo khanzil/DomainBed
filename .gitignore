@@ -5,3 +5,5 @@ domainbed/data/*
 train_output/*
 test.py
 .vscode/*
+test.ipynb
+kaggle_backend.ipynb

@@ -214,13 +214,14 @@ if __name__ == "__main__":
                 for x,_ in next(uda_minibatches_iterator)]
         else:
             uda_device = None
+        temp_gb = torch.cuda.max_memory_allocated() / (1024.*1024.*1024.)
+        print(temp_gb)    
         step_vals = algorithm.update(minibatches_device, uda_device)
         checkpoint_vals['step_time'].append(time.time() - step_start_time)
 
         for key, val in step_vals.items():
             checkpoint_vals[key].append(val)
-        temp_gb = torch.cuda.max_memory_allocated() / (1024.*1024.*1024.)
-        print(temp_gb)
+
         if (step % checkpoint_freq == 0) or (step == n_steps - 1):
             results = {
                 'step': step,
