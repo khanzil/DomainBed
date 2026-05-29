@@ -113,12 +113,7 @@ class ERM(Algorithm):
     def update(self, minibatches, unlabeled=None):
         all_x = torch.cat([x for x, y in minibatches])
         all_y = torch.cat([y for x, y in minibatches])
-        pred = self.predict(all_x)
-        temp_gb = torch.cuda.max_memory_allocated() / (1024.*1024.*1024.)
-        print(f"After pred {temp_gb}")
         loss = F.cross_entropy(self.predict(all_x), all_y)
-        temp_gb = torch.cuda.max_memory_allocated() / (1024.*1024.*1024.)
-        print(f"After loss {temp_gb}")
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
