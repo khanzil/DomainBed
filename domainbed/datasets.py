@@ -58,7 +58,7 @@ def num_environments(dataset_name):
 class MultipleDomainDataset:
     N_STEPS = 5001           # Default, subclasses may override
     CHECKPOINT_FREQ = 100    # Default, subclasses may override
-    N_WORKERS = 4            # Default is 8, changed to 4 for kaggle training, subclasses may override
+    N_WORKERS = 1            # Default subclasses may override (change from 8 to 1 for kaggle training,)
     ENVIRONMENTS = None      # Subclasses should override
     INPUT_SHAPE = None       # Subclasses should override
 
