@@ -101,6 +101,7 @@ class HDF5Dataset(Dataset):
 
 class Glasgow(MultipleDomainDataset):
     ENVIRONMENTS = []
+    N_WORKERS = 1
 
     def __init__(self, root, test_envs, hparams):
         super().__init__()
